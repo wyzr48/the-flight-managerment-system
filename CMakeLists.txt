@@ -4,7 +4,9 @@ project(the_flight_managerment_system VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
 find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(HuskarUI REQUIRED)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -32,6 +34,7 @@ set_target_properties(appthe_flight_managerment_system PROPERTIES
 
 target_link_libraries(appthe_flight_managerment_system
     PRIVATE Qt6::Quick
+    PRIVATE HuskarUI::Basic
 )
 
 include(GNUInstallDirs)
@@ -40,3 +43,4 @@ install(TARGETS appthe_flight_managerment_system
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
