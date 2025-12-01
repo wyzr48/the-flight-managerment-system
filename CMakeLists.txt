@@ -24,10 +24,11 @@ qt_add_qml_module(appthe_flight_managerment_system
     URI the_flight_managerment_system
     VERSION 1.0
     QML_FILES
-    Login.qml
-    Main.qml
-    MyFavouriteFlight.qml
-    AboutUs.qml
+    Pages/Login.qml
+    Pages/Main.qml
+    Pages/MyFavouriteFlight.qml
+    Pages/AboutUs.qml
+    Components/SharedCard.qml
     RESOURCES images.qrc
 
 )

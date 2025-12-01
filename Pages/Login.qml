@@ -684,8 +684,12 @@ Window {
     }
 
     function handleAction() {
-        windowLoader.source="Main.qml"
-        controlSignal=false
+        const mainComponent=Qt.createComponent("Main.qml");
+        if(mainComponent.status === Component.Ready){
+            const mainWindow=mainComponent.createObject(null)
+            mainWindow.visible=true
+        }
+        loginWindow.close()
     }
 
     function validateLogin() {

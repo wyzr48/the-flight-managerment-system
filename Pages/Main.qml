@@ -10,11 +10,10 @@ HusWindow{
     id:mainWindow
     width: 1080
     height: 720
-    minimumWidth: 1080
-    minimumHeight: 720
     maximumWidth: 1080
     maximumHeight: 720
-    title:"航班管理系统"
+    minimumWidth: 1080
+    minimumHeight: 720
     /* 首页左右布局分栏，左侧为功能选项按钮，右侧为功能显示界面 */
     RowLayout{
         anchors.fill: parent
