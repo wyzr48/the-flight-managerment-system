@@ -80,18 +80,18 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    // QQmlApplicationEngine engine;
-    // HusApp::initialize(&engine);
-    // QObject::connect(
-    //     &engine,
-    //     &QQmlApplicationEngine::objectCreationFailed,
-    //     &app,
-    //     []() { QCoreApplication::exit(-1); },
-    //     Qt::QueuedConnection);
-    // engine.loadFromModule("the_flight_managerment_system", "Login");
-
+    QQmlApplicationEngine engine;
+    HusApp::initialize(&engine);
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreationFailed,
+        &app,
+        []() { QCoreApplication::exit(-1); },
+        Qt::QueuedConnection);
+    engine.loadFromModule("the_flight_managerment_system", "Login");
+  
     DBManager *dbManager = DBManager::getInstance(&app);
-    test(dbManager);
-
+    //test();
+  
     return app.exec();
 }

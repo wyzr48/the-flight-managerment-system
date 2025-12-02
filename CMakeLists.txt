@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
+
 find_package(HuskarUI REQUIRED)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick QuickEffects)
@@ -25,12 +27,18 @@ qt_add_executable(appthe_flight_managerment_system
 qt_add_qml_module(appthe_flight_managerment_system
     URI the_flight_managerment_system
     VERSION 1.0
+    
     QML_FILES
-    Login.qml
-        RESOURCES images.qrc
-        SOURCES DBManager.h
-        QML_FILES
-        SOURCES DBManager.cpp
+    
+    Pages/Login.qml
+    Pages/Main.qml
+    Pages/MyFavouriteFlight.qml
+    Pages/AboutUs.qml
+    Components/SharedCard.qml
+    RESOURCES images.qrc
+    SOURCES 
+    DBManager.cpp
+    DBManager.h
 
 )
 
@@ -50,6 +58,7 @@ target_link_libraries(appthe_flight_managerment_system PRIVATE
     HuskarUI::Basic
     Qt6::QuickEffects
     Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Widgets Qt6::Sql
+    Qt6::QuickControls2
 )
 
 include(GNUInstallDirs)
