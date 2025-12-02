@@ -1,10 +1,13 @@
 #include "DBManager.h"
+#include <QCryptographicHash>
 
 // 初始化静态成员
 DBManager* DBManager::m_instance = nullptr;
 QMutex DBManager::m_mutex;
 
 DBManager::DBManager(QObject *parent) : QObject(parent)
+    , m_isAdminLoggedIn(false)
+    , m_currentAdminId(-1)
 {
     initDBConfig();
     // 加载 ODBC 驱动（仅初始化一次）
@@ -201,7 +204,7 @@ bool DBManager::addFlight(
     double price,
     int totalSeats,
     int remainSeats
-) {
+    ) {
     QMutexLocker locker(&m_mutex);
 
     if (!m_db.isOpen()) {
@@ -434,3 +437,78 @@ void DBManager::printFlightList(const QVariantList &flightList) {
     }
     qInfo() << "========================================\n";
 }
+
+// 管理员登录验证
+bool DBManager::verifyAdminLogin(const QString& adminName, const QString& password)
+{
+    QMutexLocker locker(&m_mutex);
+
+    if (!m_db.isOpen()) {
+        qWarning() << "Database is not connected";
+        emit adminLoginFailed("数据库未连接");
+        return false;
+    }
+
+    if (adminName.isEmpty() || password.isEmpty()) {
+        emit adminLoginFailed("用户名或密码不能为空");
+        return false;
+    }
+
+    QSqlQuery query(m_db);
+    query.prepare("SELECT Aid, Admin_name FROM admin_info WHERE Admin_name = ? AND Password = ?");
+    query.addBindValue(adminName);
+    query.addBindValue(password);
+
+    if (!query.exec()) {
+        qWarning() << "Login query failed:" << query.lastError();
+        emit adminLoginFailed("查询失败: " + query.lastError().text());
+        return false;
+    }
+
+    if (query.next()) {
+        m_isAdminLoggedIn = true;
+        m_currentAdminId = query.value("Aid").toInt();
+        m_currentAdminName = query.value("Admin_name").toString();
+
+        emit adminLoginStateChanged(true);
+        emit adminLoginSuccess(m_currentAdminName);
+        qDebug() << "Admin login successful:" << m_currentAdminName;
+        return true;
+    } else {
+        m_isAdminLoggedIn = false;
+        m_currentAdminId = -1;
+        m_currentAdminName.clear();
+
+        emit adminLoginFailed("用户名或密码错误");
+        qWarning() << "Admin login failed: invalid credentials";
+        return false;
+    }
+}
+
+bool DBManager::isAdminLoggedIn() const
+{
+    return m_isAdminLoggedIn;
+}
+
+void DBManager::adminLogout()
+{
+    m_isAdminLoggedIn = false;
+    m_currentAdminId = -1;
+    m_currentAdminName.clear();
+
+    emit adminLoginStateChanged(false);
+    emit adminLogoutSuccess();
+    qDebug() << "Admin logged out";
+}
+
+QString DBManager::getCurrentAdminName() const
+{
+    return m_currentAdminName;
+}
+
+int DBManager::getCurrentAdminId() const
+{
+    return m_currentAdminId;
+}
+
+

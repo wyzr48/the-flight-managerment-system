@@ -373,7 +373,9 @@ Window {
                     verticalAlignment: Text.AlignVCenter
                 }
 
-                onClicked: handleAction()
+                onClicked: {
+                    handleAction()
+                }
             }
 
             // 底部链接
@@ -683,13 +685,27 @@ Window {
         clearInputs()
     }
 
+
+
     function handleAction() {
-        const mainComponent=Qt.createComponent("Main.qml");
-        if(mainComponent.status === Component.Ready){
-            const mainWindow=mainComponent.createObject(null)
-            mainWindow.visible=true
+        if (usernameInput.text === "") {
+            showError("请输入用户名");
+            return;
         }
-        loginWindow.close()
+        if (passwordInput.text === "") {
+            showError("请输入密码");
+            return;
+        }
+
+        var success = dbManager.verifyAdminLogin(usernameField.text, passwordField.text)
+        if (success) {
+            const mainComponent = Qt.createComponent("Main.qml");
+            if(mainComponent.status === Component.Ready) {
+                const mainWindow = mainComponent.createObject(null);
+                mainWindow.visible = true;
+            }
+            loginWindow.close();
+        }
     }
 
     function validateLogin() {

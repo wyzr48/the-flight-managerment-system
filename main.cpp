@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     engine.loadFromModule("the_flight_managerment_system", "Login");
   
     DBManager *dbManager = DBManager::getInstance(&app);
-    //test();
+    test(dbManager);
   
     return app.exec();
 }

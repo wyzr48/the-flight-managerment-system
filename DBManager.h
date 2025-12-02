@@ -16,6 +16,7 @@ class DBManager : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(DBManager)
     Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectionStateChanged)
+    Q_PROPERTY(bool isAdminLoggedIn READ isAdminLoggedIn NOTIFY adminLoginStateChanged)
 
 public:
     // 全局获取单例
@@ -24,6 +25,12 @@ public:
     Q_INVOKABLE bool connectDB();          // 连接数据库
     Q_INVOKABLE void disconnectDB();       // 断开连接
     Q_INVOKABLE bool isConnected() const;  // 检查连接状态
+
+    Q_INVOKABLE bool verifyAdminLogin(const QString& adminName, const QString& password);//管理员登录验证
+    Q_INVOKABLE bool isAdminLoggedIn() const;      // 检查登录状态
+    Q_INVOKABLE void adminLogout();               // 管理员登出
+    Q_INVOKABLE QString getCurrentAdminName() const; // 获取当前管理员名
+    Q_INVOKABLE int getCurrentAdminId() const;     // 获取当前管理员ID
 
     Q_INVOKABLE QVariantList queryAllFlights();                // 查询所有航班
     Q_INVOKABLE QVariantMap queryFlightByNum(const QString& Flight_id);  // 按航班号查询
@@ -47,6 +54,10 @@ public:
 signals:
     void connectionStateChanged(bool isConnected);
     void operateResult(bool success, const QString &msg);
+    void adminLoginStateChanged(bool isLoggedIn);
+    void adminLoginSuccess(const QString& adminName);
+    void adminLoginFailed(const QString& errorMessage);
+    void adminLogoutSuccess();
 
 private:
     explicit DBManager(QObject *parent = nullptr);
@@ -62,8 +73,12 @@ private:
     QString m_user;             // 数据库用户名
     QString m_password;         // 数据库密码
     QString m_databaseName;     // 目标数据库名
+    bool m_isAdminLoggedIn;
+    int m_currentAdminId;
+    QString m_currentAdminName;
 
     bool isValidDateTimeFormat(const QString &dateStr);
+
 };
 
 
