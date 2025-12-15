@@ -8,16 +8,18 @@ import com.flight.db 1.0
 HusWindow{
     id:main_window
 
-    property var loginWindowRef: null
+    //根窗口引用
+    property var rootContainerRef: null
 
     Connections{
         target:DBManager
 
         onUserLogoutSuccess:{
-            loginWindowRef.visible=true
+            rootContainerRef.createLoginWindow()
             main_window.destroy()
         }
     }
+
 
     property var initModel :[]
     width: 1080

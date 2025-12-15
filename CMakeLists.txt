@@ -46,6 +46,8 @@ qt_add_qml_module(appthe_flight_managerment_system
     QML_FILES Components/FlightInformationCard.qml
     QML_FILES Pages/Settings.qml
     QML_FILES
+    QML_FILES
+    QML_FILES Pages/RootContainer.qml
 
 
 )

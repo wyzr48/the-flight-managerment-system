@@ -6,6 +6,10 @@ import QtQuick.Controls
 
 
 HusWindow{
+
+    //根窗口引用
+    property var rootContainerRef: null
+
     property var initModel :[]
     id:mainWindow
     width: 1080

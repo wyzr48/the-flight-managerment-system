@@ -15,6 +15,7 @@ Window {
     visible: controlSignal
     title: qsTr("登录系统")
 
+    property var rootContainerRef: null
 
     minimumWidth: 800
     minimumHeight: 450
@@ -890,14 +891,8 @@ Window {
         if(dynamicBackground.state===loginState)
         {
             if (success===4) {
-                const mainComponent = Qt.createComponent("Main.qml");
-                if(mainComponent.status === Component.Ready) {
-                    const mainWindow = mainComponent.createObject(loginWindow,{
-                                                                      objectName:"main_window",
-                                                                  loginWindowRef:loginWindow});
-                    mainWindow.visible = true;
-                }
-                loginWindow.visible=false;
+                rootContainerRef.createMainWindow()
+                loginWindow.destroy()
                 return ;
             }
             else
@@ -911,12 +906,8 @@ Window {
         //管理员登录
         if (success) {
             //登录到管理员界面
-            const adminMainComponent = Qt.createComponent("AdminChangeFlightInformation.qml");
-            if(adminMainComponent.status === Component.Ready) {
-                const mainWindow = adminMainComponent.createObject(null);
-                mainWindow.visible = true;
-            }
-            loginWindow.close();
+            rootContainerRef.createAdminMainWindow()
+            loginWindow.destroy()
         }
         else
         {
