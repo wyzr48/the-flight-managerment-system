@@ -145,6 +145,10 @@ HusWindow{
                         if(key==="my_settings"){
                             right_page.source="Settings.qml"
                         }
+                        if(key==="share_trip")
+                        {
+                            right_page.source="TravelShare.qml"
+                        }
 
                         console.log("jimi");
                     }

@@ -14,6 +14,8 @@ find_package(Qt6 REQUIRED COMPONENTS Quick QuickEffects)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Widgets Sql)#Qt 数据库模块
 
+find_package(Qt6 REQUIRED COMPONENTS Core Sql Gui Quick QuickDialogs2)
+
 set(CMAKE_AUTORCC ON)
 
 qt_standard_project_setup(REQUIRES 6.8)
@@ -70,6 +72,8 @@ target_link_libraries(appthe_flight_managerment_system PRIVATE
     Qt6::QuickEffects
     Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Widgets Qt6::Sql
     Qt6::QuickControls2
+    Qt6::QuickDialogs2
+
 )
 
 include(GNUInstallDirs)
