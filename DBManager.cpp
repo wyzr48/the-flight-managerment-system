@@ -972,6 +972,125 @@ QVariantList DBManager::queryCollectedFlights(int userId)
     return flightList;
 }
 
+// 按航班号查询收藏航班
+QVariantList DBManager::queryCollectedFlightByNum(int userId, const QString& Flight_id)
+{
+    QMutexLocker locker(&m_mutex);
+    QVariantList flightList;
+
+    if (!m_db.isOpen()) {
+        emit operateResult(false, "查询失败：数据库未连接！");
+        return flightList;
+    }
+    if (userId <= 0) {
+        emit operateResult(false, "查询失败：用户Id非法！");
+        return flightList;
+    }
+
+    QSqlQuery query(m_db);
+    query.prepare(R"(
+        SELECT f.* FROM flight f
+        INNER JOIN user_collect_flights ucf ON f.Flight_id = ucf.flight_id
+        WHERE ucf.user_id = :user_id and ucf.flight_id = :flight_id
+        ORDER BY ucf.create_time DESC
+    )");
+    query.bindValue(":user_id", userId);
+    query.bindValue(":flight_id", Flight_id);
+
+    if (!query.exec()) {
+        qDebug() << "按航班号查询收藏航班失败：" << query.lastError().text();
+        return flightList;
+    }
+
+    while (query.next()) {
+        QVariantMap flightMap;
+        flightMap["Flight_id"] = query.value("Flight_id").toString();
+        flightMap["Departure"] = query.value("Departure").toString();
+        flightMap["Destination"] = query.value("Destination").toString();
+        flightMap["depart_time"] = query.value("depart_time").toString();
+        flightMap["arrive_time"] = query.value("arrive_time").toString();
+        flightMap["price"] = query.value("price").toDouble();
+        flightMap["total_seats"] = query.value("total_seats").toInt();
+        flightMap["remain_seats"] = query.value("remain_seats").toInt();
+        flightMap["status"] = query.value("status").toString();
+
+        flightList.append(flightMap);
+    }
+
+    return flightList;
+}
+
+// 按地点，日期查询收藏航班
+QVariantList DBManager::queryCollectedFlightsByCondition(int userId, const QString& departure, const QString& destination, const QString& departDate)
+{
+    QMutexLocker locker(&m_mutex);
+    QVariantList flightList;
+
+    if (!m_db.isOpen()) {
+        emit operateResult(false, "查询失败：数据库未连接！");
+        return flightList;
+    }
+    if (userId <= 0) {
+        emit operateResult(false, "查询失败：用户Id非法！");
+        return flightList;
+    }
+
+    QSqlQuery query(m_db);
+    QString sql = R"(
+        SELECT f.* FROM flight f
+        INNER JOIN user_collect_flights ucf ON f.Flight_id = ucf.flight_id
+        WHERE ucf.user_id = :user_id
+    )";
+
+    QList<QString> conditions;
+    if (!departure.isEmpty()) {
+        conditions.append("f.Departure = :departure");
+    }
+    if (!destination.isEmpty()) {
+        conditions.append("f.Destination = :destination");
+    }
+    if (!destination.isEmpty()) {
+        conditions.append("f.DATE(depart_time) = :departDate");
+    }
+
+    // 拼接WHERE子句
+    if (!conditions.isEmpty()) {
+        sql += " AND " + conditions.join(" AND ");
+    }
+
+    // 按收藏时间降序排列（最新收藏的在前）
+    sql += " ORDER BY uf.favorite_time DESC";
+
+    query.prepare(sql);
+
+    query.bindValue(":user_id", userId);
+    query.bindValue(":departure", departure);
+    query.bindValue(":destination", destination);
+    query.bindValue(":departDate", departDate);
+
+    if (!query.exec()) {
+        qDebug() << "查询收藏航班失败：" << query.lastError().text();
+        return flightList;
+    }
+
+    while (query.next()) {
+        QVariantMap flightMap;
+        flightMap["Flight_id"] = query.value("Flight_id").toString();
+        flightMap["Departure"] = query.value("Departure").toString();
+        flightMap["Destination"] = query.value("Destination").toString();
+        flightMap["depart_time"] = query.value("depart_time").toString();
+        flightMap["arrive_time"] = query.value("arrive_time").toString();
+        flightMap["price"] = query.value("price").toDouble();
+        flightMap["total_seats"] = query.value("total_seats").toInt();
+        flightMap["remain_seats"] = query.value("remain_seats").toInt();
+        flightMap["status"] = query.value("status").toString();
+
+        flightList.append(flightMap);
+    }
+
+    return flightList;
+}
+
 // 判断用户是否已收藏某航班
 bool DBManager::isFlightCollected(int userId, const QString& flightId)
 {
@@ -1419,6 +1538,44 @@ QStringList DBManager::getOrderStatusList()
     return statusList;
 }
 
+// 辅助函数：读取图片文件为二进制（带压缩）
+QByteArray DBManager::readImageToBlob(const QString& imgPath, int quality)
+{
+    // 检查文件是否存在
+    QFile file(imgPath);
+    if (!file.exists()) {
+        qDebug() << "图片文件不存在：" << imgPath;
+        return QByteArray();
+    }
+
+    // 读取图片为QImage
+    QImage img;
+    if (!img.load(imgPath)) {
+        qDebug() << "不是有效图片文件：" << imgPath;
+        return QByteArray();
+    }
+
+    // 压缩图片（限制最大尺寸，可选）
+    if (img.width() > 1920 || img.height() > 1080) {
+        img = img.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+
+    // 正确获取文件格式（从路径后缀判断，替代错误的Format_PNG）
+    QString fileSuffix = imgPath.split(".").last().toLower();
+    // 兼容格式：jpg/jpeg统一为JPG，png为PNG
+    QString saveFormat = (fileSuffix == "png") ? "PNG" : "JPG";
+
+    // QImage转二进制BLOB（使用正确的格式字符串）
+    QByteArray blob;
+    QBuffer buffer(&blob);
+    buffer.open(QIODevice::WriteOnly);
+    img.save(&buffer, saveFormat.toUtf8().constData(), quality);
+    buffer.close();
+
+    qDebug() << "图片读取成功，压缩后大小：" << blob.size() << "字节";
+    return blob;
+}
+
 // 发布帖子
 bool DBManager::publishPost(
     const QString& title,
@@ -1449,6 +1606,34 @@ bool DBManager::publishPost(
     }
     emit operateResult(true, "发布成功");
     return true;
+}
+
+// 通过文件路径存储发布
+bool DBManager::publishPostWithPath(
+    const QString& title,
+    const QString& content,
+    int userId,
+    const QString& imgPath)
+{
+    if (!isConnected() || title.isEmpty() || content.isEmpty() || userId <= 0 || imgPath.isEmpty()) {
+        emit operateResult(false, "参数错误或数据库未连接");
+        return false;
+    }
+
+    // C++读取图片文件为二进制（带压缩）
+    QByteArray imgBlob = readImageToBlob(imgPath, 80);
+    if (imgBlob.isEmpty()) {
+        emit operateResult(false, "图片读取失败或不是有效图片");
+        return false;
+    }
+
+    // 获取图片格式（后缀）
+    QString imgFormat = imgPath.split(".").last().toLower();
+    // 兼容jpg/jpeg
+    if (imgFormat == "jpeg") imgFormat = "jpg";
+
+    // 复用原有publishPost函数存入数据库
+    return publishPost(title, content, userId, imgBlob, imgFormat);
 }
 
 // 查询帖子详情

@@ -14,6 +14,8 @@
 #include <QString>
 #include <QImage>
 #include <QByteArray>
+#include <QFile>
+#include <QBuffer>
 
 // 数据库管理单例类
 class DBManager : public QObject
@@ -63,6 +65,8 @@ public:
     Q_INVOKABLE bool collectFlight(int userId, const QString& flightId, const QString& createTime);  // 收藏航班
     Q_INVOKABLE bool cancelCollectFlight(int userId, const QString& flightId);  // 取消收藏航班
     Q_INVOKABLE QVariantList queryCollectedFlights(int userId);  // 查询用户收藏的所有航班
+    Q_INVOKABLE QVariantList queryCollectedFlightByNum(int userId, const QString& Flight_id);  // 按航班号查询收藏航班
+    Q_INVOKABLE QVariantList queryCollectedFlightsByCondition(int userId, const QString& departure, const QString& destination, const QString& departDate);  // 按地点，日期查询收藏航班
     Q_INVOKABLE bool isFlightCollected(int userId, const QString& flightId);  // 判断用户是否已收藏某航班
 
     Q_INVOKABLE void printFlight(const QVariantMap &flight);  // 打印航班
@@ -92,6 +96,7 @@ public:
     Q_INVOKABLE bool isOrderExists(int userId, int orderId);  // 检查订单是否存在
     Q_INVOKABLE QStringList getOrderStatusList();  // 获取订单状态列表
 
+    QByteArray readImageToBlob(const QString& imgPath, int quality = 80);  // 辅助函数：读取图片文件为二进制（带压缩）
     Q_INVOKABLE bool publishPost(
         const QString& title,
         const QString& content,
@@ -99,8 +104,13 @@ public:
         const QByteArray& imgBlob = QByteArray(),
         const QString& imgFormat = ""
         );  // 发布帖子
+    Q_INVOKABLE bool publishPostWithPath(
+        const QString& title,
+        const QString& content,
+        int userId,
+        const QString& imgPath
+        );  // 通过文件路径存储发布
     Q_INVOKABLE QVariantMap queryPostDetail(int postId, int currentUserId);  // 查询帖子详情
-
     Q_INVOKABLE bool likePost(int userId, int postId);  // 点赞
     Q_INVOKABLE bool cancelLikePost(int userId, int postId);  // 取消点赞
     Q_INVOKABLE bool isPostLiked(int userId, int postId);  // 是否点赞
