@@ -110,11 +110,11 @@ ColumnLayout{
     ListView{
         Layout.fillHeight: true
         Layout.fillWidth: true
+        spacing: 5
         model: flightList
 
         delegate: FlightInformationCard{
             required property var modelData
-            width: parent.width
             height: 150
             card_data: {
                 "flight_id":modelData.Flight_id,
