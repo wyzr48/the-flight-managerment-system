@@ -1,7 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import HuskarUI.Basic
 import com.flight.db 1.0
+
+import "../Components"
 
 ColumnLayout{
     property var search_data:{
@@ -10,6 +13,9 @@ ColumnLayout{
         "destination":"",
         "depart_time":""
     }
+
+    // 航班号结果
+    property var flightList:[]
 
     Layout.fillWidth: true
     Layout.fillHeight: true
@@ -99,6 +105,35 @@ ColumnLayout{
     HusDivider{
         Layout.fillWidth: true
     }
+    ScrollView{
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        Column{
+            width: parent.width
+            spacing: 5
+            Repeater{
+                model: flightList
+
+                FlightInformationCard{
+                    required property var modelData
+                    width: parent.width
+                    height: 150
+                    card_data: {
+                        "flight_id":modelData.Flight_id,
+                        "departure":modelData.Departure,
+                        "destination":modelData.Destination,
+                        "depart_time":modelData.depart_time,
+                        "arrive_time":modelData.arrive_time,
+                        "price":modelData.price,
+                        "total_seats":modelData.total_seats,
+                        "remain_seats":modelData.remain_seats,
+                        "status":modelData.status
+                    }
+                }
+            }
+        }
+    }
+
     Item{
         Layout.fillHeight: true
         Layout.fillWidth: true
@@ -123,7 +158,7 @@ ColumnLayout{
         console.log(search_data.departure)
         console.log(search_data.destination)
         console.log(search_data.depart_time)
-        let flightList=DBManager.queryFlightsByCondition(search_data.departure,search_data.destination,search_data.depart_time)
+        flightList=DBManager.queryFlightsByCondition(search_data.departure,search_data.destination,search_data.depart_time)
         for(let j=0;j<flightList.length;j++)
         {
             console.log(flightList[j]["Flight_id"]);

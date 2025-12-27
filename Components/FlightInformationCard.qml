@@ -18,7 +18,9 @@ HusRectangle{
         "remain_seats":2,
         "status":2
     }
-    anchors.fill: parent
+    id:flight_information
+    width: parent.width
+    height: parent.height
     radius:20
     color:HusTheme.darkMode?"#FF1F1F1F":"#FFE0E0E0"
     ColumnLayout{
