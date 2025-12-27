@@ -18,7 +18,9 @@ HusRectangle{
         "remain_seats":2,
         "status":2
     }
-    anchors.fill: parent
+    id:flight_information
+    width: parent.width
+    height: parent.height
     radius:20
     color:HusTheme.darkMode?"#FF1F1F1F":"#FFE0E0E0"
     ColumnLayout{
@@ -112,6 +114,12 @@ HusRectangle{
                 color: "#FF999999"
                 Layout.alignment: Qt.AlignVCenter
                 radius: 10
+                HusText{
+                    anchors.centerIn: parent
+                    text: qsTr(String(card_data.remain_seats))
+                    font.pixelSize: 17
+                    font.bold: true
+                }
             }
             //状态
             HusRectangle{

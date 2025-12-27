@@ -1,7 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import HuskarUI.Basic
 import com.flight.db 1.0
+
+import "../Components"
 
 ColumnLayout{
     property var search_data:{
@@ -9,6 +12,11 @@ ColumnLayout{
         "departure":"",
         "destination":"",
         "depart_time":""
+    }
+
+    // 航班号结果
+    ListModel{
+        id:flightList
     }
 
     Layout.fillWidth: true
@@ -99,6 +107,29 @@ ColumnLayout{
     HusDivider{
         Layout.fillWidth: true
     }
+    ListView{
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        spacing: 5
+        model: flightList
+
+        delegate: FlightInformationCard{
+            required property var modelData
+            height: 150
+            card_data: {
+                "flight_id":modelData.Flight_id,
+                "departure":modelData.Departure,
+                "destination":modelData.Destination,
+                "depart_time":modelData.depart_time,
+                "arrive_time":modelData.arrive_time,
+                "price":modelData.price,
+                "total_seats":modelData.total_seats,
+                "remain_seats":modelData.remain_seats,
+                "status":modelData.status
+            }
+        }
+    }
+
     Item{
         Layout.fillHeight: true
         Layout.fillWidth: true
@@ -108,9 +139,11 @@ ColumnLayout{
         //优先处理航班号
         if(search_my_flight_input.text!==""){
             let flight =DBManager.queryFlightByNum(search_data.flight_id)
+            flightList.clear();
             for(let i=0;i<flight.length;i++)
             {
                 console.log(flight[i]["Flight_id"]);
+                flightList.append(flight[i]);
             }
 
             return ;
@@ -119,14 +152,16 @@ ColumnLayout{
         // var departureText=departure.displayText==="起始地"?"":departure.displayText
         // var destinationText=destination.displayText==="目的地"?"":destination.displayText
 
-        console.log("here")
-        console.log(search_data.departure)
-        console.log(search_data.destination)
-        console.log(search_data.depart_time)
-        let flightList=DBManager.queryFlightsByCondition(search_data.departure,search_data.destination,search_data.depart_time)
-        for(let j=0;j<flightList.length;j++)
+        console.log("here");
+        console.log(search_data.departure);
+        console.log(search_data.destination);
+        console.log(search_data.depart_time);
+        let flights=DBManager.queryFlightsByCondition(search_data.departure,search_data.destination,search_data.depart_time);
+        flightList.clear();
+        for(let j=0;j<flights.length;j++)
         {
-            console.log(flightList[j]["Flight_id"]);
+            console.log(flights[j]["Flight_id"]);
+            flightList.append(flights[j]);
         }
 
     }

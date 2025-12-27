@@ -59,10 +59,10 @@ public:
         );  // 添加航班
     Q_INVOKABLE bool updateFlightPrice(const QString& Flight_id, double newPrice);  // 更新价格
     Q_INVOKABLE bool updateFlightSeats(const QString& Flight_id, int newRemainSeats);  // 更新剩余座位
-    Q_INVOKABLE bool updateFlightStatus(const QString& Flight_id, const QString& newststus);  // 更新航班状态
+    Q_INVOKABLE bool updateFlightStatus(const QString& Flight_id, int newststus);  // 更新航班状态
     Q_INVOKABLE bool deleteFlight(const QString& Flight_id);    // 删除航班
 
-    Q_INVOKABLE bool collectFlight(int userId, const QString& flightId, const QString& createTime);  // 收藏航班
+    Q_INVOKABLE bool collectFlight(int userId, const QString& flightId);  // 收藏航班
     Q_INVOKABLE bool cancelCollectFlight(int userId, const QString& flightId);  // 取消收藏航班
     Q_INVOKABLE QVariantList queryCollectedFlights(int userId);  // 查询用户收藏的所有航班
     Q_INVOKABLE QVariantList queryCollectedFlightByNum(int userId, const QString& Flight_id);  // 按航班号查询收藏航班
