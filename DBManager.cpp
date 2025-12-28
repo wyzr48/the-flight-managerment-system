@@ -353,6 +353,89 @@ void DBManager::userLogout()
     emit operateResult(true, "登出成功！");
 }
 
+// 【核心】上传头像：传入用户ID+图片路径，自动处理所有逻辑（推荐调用这个）
+bool DBManager::uploadUserAvatar(int userId, const QString& imgPath, int quality)
+{
+    if (!isConnected() || userId <=0 || imgPath.isEmpty()) {
+        emit operateResult(false, "参数错误/数据库未连接");
+        return false;
+    }
+    // 复用你之前的图片读取函数，自动解析file:///路径+转二进制+压缩
+    QByteArray imgBlob = readImageToBlob(imgPath, quality);
+    if (imgBlob.isEmpty()) {
+        emit operateResult(false, "头像图片读取失败");
+        return false;
+    }
+    // 获取图片格式
+    QString imgFormat = imgPath.split(".").last().toLower();
+    if(imgFormat == "jpeg") imgFormat = "jpg";
+    // 调用二进制上传函数
+    return uploadUserAvatarByBlob(userId, imgBlob, imgFormat);
+}
+
+// 上传头像：二进制+格式 版本（内部调用/备用）
+bool DBManager::uploadUserAvatarByBlob(int userId, const QByteArray& imgBlob, const QString& imgFormat)
+{
+    if (!isConnected() || userId <=0 || imgBlob.isEmpty() || imgFormat.isEmpty()) {
+        emit operateResult(false, "参数错误");
+        return false;
+    }
+    QSqlQuery query(m_db);
+    query.prepare("UPDATE user_info SET avatar_blob = :avatar_blob, avatar_format = :avatar_format WHERE Uid = :user_id");
+    query.bindValue(":avatar_blob", imgBlob);
+    query.bindValue(":avatar_format", imgFormat);
+    query.bindValue(":user_id", userId);
+
+    if(!query.exec() || query.numRowsAffected() == 0){
+        qDebug()<<"更新头像失败："<<query.lastError().text();
+        emit operateResult(false, "头像上传失败");
+        return false;
+    }
+    emit operateResult(true, "头像上传成功");
+    return true;
+}
+
+// 获取用户头像二进制
+QByteArray DBManager::getUserAvatarBlob(int userId)
+{
+    if(!isConnected() || userId <=0) return QByteArray();
+    QSqlQuery query(m_db);
+    query.prepare("SELECT avatar_blob FROM user_info WHERE Uid = :user_id");
+    query.bindValue(":user_id", userId);
+    if(query.exec() && query.next()){
+        return query.value("avatar_blob").toByteArray();
+    }
+    return QByteArray();
+}
+
+// 获取用户头像格式
+QString DBManager::getUserAvatarFormat(int userId)
+{
+    if(!isConnected() || userId <=0) return "";
+    QSqlQuery query(m_db);
+    query.prepare("SELECT avatar_format FROM user_info WHERE Uid = :user_id");
+    query.bindValue(":user_id", userId);
+    if(query.exec() && query.next()){
+        return query.value("avatar_format").toString();
+    }
+    return "";
+}
+
+// 移除头像：清空数据库的头像字段
+bool DBManager::removeUserAvatar(int userId)
+{
+    if(!isConnected() || userId <=0) return false;
+    QSqlQuery query(m_db);
+    query.prepare("UPDATE user_info SET avatar_blob = NULL, avatar_format = NULL WHERE Uid = :user_id");
+    query.bindValue(":user_id", userId);
+    if(!query.exec()){
+        emit operateResult(false, "移除头像失败");
+        return false;
+    }
+    emit operateResult(true, "头像已移除");
+    return true;
+}
+
 // 忘记密码
 int DBManager::forgetPassword(const QString& Email, const QString& verifyCode, const QString& newPassword)
 {
@@ -865,7 +948,7 @@ bool DBManager::deleteFlight(const QString& Flight_id)
 }
 
 // 收藏航班
-int DBManager::collectFlight(int userId, const QString& flightId, const QString& createTime)
+bool DBManager::collectFlight(int userId, const QString& flightId)
 {
     QMutexLocker locker(&m_mutex);
 
@@ -881,12 +964,11 @@ int DBManager::collectFlight(int userId, const QString& flightId, const QString&
 
     QSqlQuery query(m_db);
     query.prepare(R"(
-        INSERT INTO user_collect_flights (user_id, flight_id, create_time)
-        VALUES (:user_id, :flight_id, :create_time)
+        INSERT INTO user_collect_flights (user_id, flight_id)
+        VALUES (:user_id, :flight_id)
     )");
     query.bindValue(":user_id", userId);
     query.bindValue(":flight_id", flightId);
-    query.bindValue(":create_time", createTime);
 
     if (!query.exec()) {
         qDebug() << "收藏航班失败：" << query.lastError().text();
@@ -965,8 +1047,8 @@ QVariantList DBManager::queryCollectedFlights(int userId)
         flightMap["Flight_id"] = query.value("Flight_id").toString();
         flightMap["Departure"] = query.value("Departure").toString();
         flightMap["Destination"] = query.value("Destination").toString();
-        flightMap["depart_time"] = query.value("depart_time").toString();
-        flightMap["arrive_time"] = query.value("arrive_time").toString();
+        flightMap["depart_time"] = query.value("depart_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss");
+        flightMap["arrive_time"] = query.value("arrive_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss");
         flightMap["price"] = query.value("price").toDouble();
         flightMap["total_seats"] = query.value("total_seats").toInt();
         flightMap["remain_seats"] = query.value("remain_seats").toInt();
@@ -1013,8 +1095,8 @@ QVariantList DBManager::queryCollectedFlightByNum(int userId, const QString& Fli
         flightMap["Flight_id"] = query.value("Flight_id").toString();
         flightMap["Departure"] = query.value("Departure").toString();
         flightMap["Destination"] = query.value("Destination").toString();
-        flightMap["depart_time"] = query.value("depart_time").toString();
-        flightMap["arrive_time"] = query.value("arrive_time").toString();
+        flightMap["depart_time"] = query.value("depart_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss");
+        flightMap["arrive_time"] = query.value("arrive_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss");
         flightMap["price"] = query.value("price").toDouble();
         flightMap["total_seats"] = query.value("total_seats").toInt();
         flightMap["remain_seats"] = query.value("remain_seats").toInt();
@@ -1084,8 +1166,8 @@ QVariantList DBManager::queryCollectedFlightsByCondition(int userId, const QStri
         flightMap["Flight_id"] = query.value("Flight_id").toString();
         flightMap["Departure"] = query.value("Departure").toString();
         flightMap["Destination"] = query.value("Destination").toString();
-        flightMap["depart_time"] = query.value("depart_time").toString();
-        flightMap["arrive_time"] = query.value("arrive_time").toString();
+        flightMap["depart_time"] = query.value("depart_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss");
+        flightMap["arrive_time"] = query.value("arrive_time").toDateTime().toString("yyyy-MM-dd HH:mm:ss");
         flightMap["price"] = query.value("price").toDouble();
         flightMap["total_seats"] = query.value("total_seats").toInt();
         flightMap["remain_seats"] = query.value("remain_seats").toInt();

@@ -62,7 +62,8 @@ public:
     Q_INVOKABLE bool updateFlightStatus(const QString& Flight_id, int newststus);  // 更新航班状态
     Q_INVOKABLE bool deleteFlight(const QString& Flight_id);    // 删除航班
 
-    Q_INVOKABLE int collectFlight(int userId, const QString& flightId, const QString& createTime);  // 收藏航班
+
+    Q_INVOKABLE bool collectFlight(int userId, const QString& flightId);  // 收藏航班
     Q_INVOKABLE bool cancelCollectFlight(int userId, const QString& flightId);  // 取消收藏航班
     Q_INVOKABLE QVariantList queryCollectedFlights(int userId);  // 查询用户收藏的所有航班
     Q_INVOKABLE QVariantList queryCollectedFlightByNum(int userId, const QString& Flight_id);  // 按航班号查询收藏航班
@@ -75,6 +76,12 @@ public:
     Q_INVOKABLE int userRegister(const QString& email, const QString& username, const QString& password);  // 普通用户注册
     Q_INVOKABLE int userLogin(const QString& username, const QString& password);  // 普通用户登录
     Q_INVOKABLE void userLogout();  // 普通用户登出
+
+    Q_INVOKABLE bool uploadUserAvatar(int userId, const QString& imgPath, int quality = 80);  // 上传/更新用户头像（传图片路径，自动解析+转二进制存入数据库，推荐）
+    Q_INVOKABLE bool uploadUserAvatarByBlob(int userId, const QByteArray& imgBlob, const QString& imgFormat);  // 上传/更新用户头像（传二进制+格式，备用）
+    Q_INVOKABLE QByteArray getUserAvatarBlob(int userId);  // 获取用户头像的二进制数据
+    Q_INVOKABLE QString getUserAvatarFormat(int userId);  // 获取用户头像的格式
+    Q_INVOKABLE bool removeUserAvatar(int userId);  // 移除用户头像（清空数据库的头像字段）
 
     Q_INVOKABLE bool isUserLoggedIn() const;  // 检查普通用户登录状态
     Q_INVOKABLE int getCurrentUserId() const;  // 获取当前登录用户的ID
