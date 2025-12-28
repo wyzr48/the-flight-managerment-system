@@ -122,6 +122,10 @@ HusWindow{
                         if(key==="search_flight"){
                             right_page.source="SearchFlight.qml"
                         }
+                        if(key==="my_settings")
+                        {
+                            right_page.source="Settings.qml"
+                        }
 
                         console.log("jimi");
                     }

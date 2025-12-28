@@ -19,6 +19,14 @@ HusRectangle{
         "remain_seats":2,
         "status":2
     }
+
+    property  var temp:{
+        "seat:":"",
+        "price":"",
+        "status":""
+
+    }
+
     id:flight_information
     width: parent.width
     height: parent.height
@@ -159,7 +167,9 @@ HusRectangle{
             HusModal{
                 id:modifyDialog
                 title:"修改"
-                contentDelegate: ColumnLayout{
+                width:500
+
+                descriptionDelegate: ColumnLayout{
                     spacing:10
                     Layout.fillHeight: true
                     Layout.fillWidth: true
@@ -182,7 +192,15 @@ HusRectangle{
 
                         HusInput{
                             id:seatInput
-                            text:qsTr(card_data.remain_seats)
+                            width:200
+                            text:card_data.remain_seats
+                            //console.log(card_data.remain_seats)
+                            Component.onCompleted: {
+                                temp.seat=seatInput.text
+                            }
+                            onTextChanged: {
+                                temp.seat=seatInput.text
+                            }
                         }
                     }
 
@@ -194,19 +212,33 @@ HusRectangle{
 
                         HusInput{
                             id:priceInput
-                            text:qsTr(card_data.price)
+                            width:200
+                            text:card_data.price
+                            Component.onCompleted: {
+                                temp.price=priceInput.text
+                            }
+                            onTextChanged: {
+                                temp.price=priceInput.text
+                            }
                         }
                     }
 
                     Row{
                         spacing:10
                         HusText{
-                            text:"航班状态:\n(0:准点,1:延误,2:取消)"
+                            text:"航班状态:(0:准点,1:延误,2:取消)"
                         }
 
                         HusInput{
                             id:statusInput
-                            text:qsTr(card_data.remain_seats)
+                            width:200
+                            text:card_data.status
+                            Component.onCompleted: {
+                                temp.status=statusInput.text
+                            }
+                            onTextChanged: {
+                                temp.status=statusInput.text
+                            }
                         }
                     }
                 }
@@ -214,9 +246,11 @@ HusRectangle{
                 confirmText: "保存"
                 cancelText: "取消"
                 onConfirm: {
-                    DBManager.updateFlightPrice(card_data.id,priceInput.Text)
-                    DBManager.updateFlightSeats(card_data.id,seatInput.Text)
-                    DBManager.updateFlightStatus(card_id,statusInput.Text)
+                    DBManager.updateFlightPrice(card_data.flight_id,temp.price)
+                    DBManager.updateFlightSeats(card_data.flight_id,temp.seat)
+                    DBManager.updateFlightStatus(card_data.flight_id,temp.status)
+
+                    close()
                 }
 
                 onCancel: close()
