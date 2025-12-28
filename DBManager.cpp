@@ -1812,7 +1812,9 @@ int DBManager::getLatestPostId()
 // 查询帖子详情
 QVariantMap DBManager::queryPostDetail(int postId, int currentUserId)
 {
-    QVariantMap postMap;
+    QMutexLocker locker(&m_mutex);
+
+    QVariantMap postMap = QVariantMap();
     if (!isConnected() || postId <= 0)
         return postMap;
 
@@ -1828,6 +1830,8 @@ QVariantMap DBManager::queryPostDetail(int postId, int currentUserId)
         qDebug() << "查询帖子失败：" << query.lastError().text();
         return postMap;
     }
+
+    qDebug()<<"查询帖子成功";
 
     // 封装核心字段
     postMap["id"] = query.value("id").toInt();
@@ -2056,7 +2060,7 @@ bool DBManager::updateUserIdCard(const QString& idCard)
         return false;
     }
 }
-int DBManager::createOrder(int userId, const QString &flightId, const QString &status)
+int DBManager::createOrder(int userId, const QString &flightId, const int status)
 {
     if (!m_db.isOpen()) {
         qCritical() << "数据库未连接";
