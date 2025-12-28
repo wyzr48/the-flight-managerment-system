@@ -56,6 +56,16 @@ ColumnLayout{
         Layout.fillWidth: true
     }
 
+    Connections{
+        target: DBManager
+
+        function onOperateResult(success,message){
+            if(message.includes("取消收藏成功") && success){
+                get_favourite_flights();
+            }
+        }
+    }
+
     Component.onCompleted: {
         get_favourite_flights();
     }

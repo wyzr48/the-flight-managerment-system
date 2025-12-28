@@ -17,11 +17,60 @@ ColumnLayout{
         "image_url":""
     }
 
-    //写界面时可替换
-    Button {
-            text: "选择图片"
-            //anchors.centerIn: parent
-            onClicked: fileDialog.open()
+    HusTextArea{
+        Layout.fillWidth: true
+        Layout.topMargin: 100
+        autoSize: true
+        minRows: 1
+        maxRows: 1
+        placeholderText: qsTr("请输入标题")
+        textArea.onTextChanged: {
+            share_data.title = text
+        }
+    }
+
+    HusTextArea{
+        Layout.fillWidth: true
+        autoSize: true
+        minRows: 10
+        maxRows: 10
+        placeholderText: qsTr("请输入正文")
+        textArea.onTextChanged: {
+            share_data.content = text
+        }
+    }
+
+    HusImage{
+        id:discovery_image
+        Layout.preferredWidth: 100
+        Layout.preferredHeight: 100
+        source: share_data.image_url
+        visible: false
+    }
+
+    HusIconText{
+        id:upload_image
+        iconSource: HusIcon.FileImageOutlined
+        iconSize: 100
+        contentDescription: qsTr("导入图片")
+        visible: true
+
+        TapHandler{
+            target: parent
+            onTapped: fileDialog.open()
+        }
+    }
+
+    HusIconButton{
+        Layout.fillWidth: true
+        Layout.preferredHeight: 50
+        iconSource: HusIcon.NodeIndexOutlined
+        type: HusButton.Type_Primary
+        text: qsTr("提交")
+        onClicked: {
+            let uid=DBManager.getCurrentUserId()
+            DBManager.publishPostWithPath(share_data.title,share_data.content,uid,share_data.image_url)
+        }
     }
 
     //上传图片对话框
@@ -32,42 +81,16 @@ ColumnLayout{
         onAccepted: {
 
             share_data.image_url=selectedFile
-            let uid=DBManager.getCurrentUserId()
-            DBManager.publishPostWithPath(share_data.title,share_data.content,uid,share_data.image_url)
+            discovery_image.source = selectedFile
+            discovery_image.visible = true
+            upload_image.visible = false
             console.log(share_data.image_url)
         }
     }
 
-    //测试拉取图片
-    property var image_source:{
-        "source":""
+    Item {
+        Layout.fillHeight: true
+        Layout.fillWidth: true
     }
-    Button{
-        text:"拉取图片"
-        onClicked:{
-            let mp=DBManager.queryPostDetail(2,DBManager.getCurrentUserId())
-            let base=DBManager.blobToImage(mp["img_blob"],mp["img_format"])
-            image_source.source=base
-            test.source=image_source.source
-            console.log(image_source.source)
-        }
-    }
-
-    Image{
-        //anchors.fill:parent
-        id:test
-        width:100
-        height:100
-        fillMode: Image.PreserveAspectCrop
-        source: image_source.source
-
-    }
-
-
-
-
-
-
-
 }
 

@@ -4,10 +4,6 @@ import QtQuick.Layouts
 
 ColumnLayout{
 
-    property var card_data: {
-
-    }
-
     Layout.fillHeight: true
     Layout.fillWidth: true
     Loader{
