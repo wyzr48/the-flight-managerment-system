@@ -981,12 +981,12 @@ bool DBManager::collectFlight(int userId, const QString &flightId)
 
     if (!m_db.isOpen()) {
         emit operateResult(false, "删除失败：数据库未连接！");
-        return false;
+        return 404;
     }
 
     if (isFlightCollected(userId, flightId)) {
         emit operateResult(false, "已收藏该航班");
-        return false;
+        return 401;
     }
 
     QSqlQuery query(m_db);
@@ -1000,11 +1000,11 @@ bool DBManager::collectFlight(int userId, const QString &flightId)
     if (!query.exec()) {
         qDebug() << "收藏航班失败：" << query.lastError().text();
         emit operateResult(false, "收藏航班失败：" + query.lastError().text());
-        return false;
+        return 502;
     }
 
     emit operateResult(true, "收藏航班成功");
-    return true;
+    return 100;
 }
 
 // 取消收藏航班
