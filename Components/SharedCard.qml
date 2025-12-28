@@ -8,8 +8,8 @@ Item {
     //暴露给外部传递的动态数据
     property var card_data:{
         "id": 0,
-        "title": "",
-        "content": "",
+        "title": "灰灰意识新奇",
+        "content": "卧槽元神？？？？",
         "image_url": ""
     }
 
@@ -20,7 +20,7 @@ Item {
         anchors.centerIn: parent
         title: qsTr(card_data.title)
         coverSource: card_data.image_url
-        bodyDescription: ""
+        bodyDescription: qsTr(card_data.content)
         colorBodyDescription: "#000000"
         actionDelegate: Item {
             height: 470
