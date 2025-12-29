@@ -117,7 +117,7 @@ HusWindow{
                             right_page.source="AboutUs.qml"
                         }
                         if(key==="userManage"){
-                            right_page.source="Discovery.qml"
+                            right_page.source="UserManage.qml"
                         }
                         if(key==="search_flight"){
                             right_page.source="SearchFlight.qml"
