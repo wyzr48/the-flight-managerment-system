@@ -1047,6 +1047,7 @@ bool DBManager::cancelCollectFlight(int userId, const QString &flightId)
         return false;
     }
 
+    locker.unlock();
     emit operateResult(true, "取消收藏成功");
     return true;
 }
@@ -1532,7 +1533,7 @@ bool DBManager::deleteOrder(const QString& orderId)
     }
 
     QSqlQuery query(m_db);
-    QString sql = "DELETE FROM order WHERE order_id = :order_id";
+    QString sql = "DELETE FROM `order` WHERE order_id = :order_id";
     if (!query.prepare(sql)) {
         QString errMsg = "[DB] 删除预处理失败：" + query.lastError().text();
         qCritical() << errMsg;
@@ -1544,6 +1545,7 @@ bool DBManager::deleteOrder(const QString& orderId)
     bool success = query.exec();
 
     if (success && query.numRowsAffected() > 0) {
+        locker.unlock();
         emit operateResult(true, "订单 " + orderId + " 删除成功！");
     } else if (success && query.numRowsAffected() == 0) {
         emit operateResult(false, "删除失败：未找到订单 " + orderId + "！");
@@ -1939,7 +1941,6 @@ bool DBManager::updateUserIdCard(const QString& idCard)
     }
 }
 
-
 bool DBManager::createOrder(int userId, const QString &flightId, const QString& passengerName, const QString& passengerIdcard)
 {
     // 1. 基础校验：数据库连接
@@ -1973,6 +1974,7 @@ bool DBManager::createOrder(int userId, const QString &flightId, const QString& 
 
     // 4. 创建订单（插入手动生成的 order_id）
     QSqlQuery orderQuery(m_db);
+
     // 注意：INSERT 语句要包含 order_id 字段，值为我们生成的 ID
     orderQuery.prepare("INSERT INTO `order` (order_id, user_id, flight_id, passenger_name, passenger_idcard) VALUES (?, ?, ?, ?, ?)");
     orderQuery.addBindValue(orderId); // 绑定自定义订单 ID
@@ -1981,12 +1983,14 @@ bool DBManager::createOrder(int userId, const QString &flightId, const QString& 
     orderQuery.addBindValue(passengerName);
     orderQuery.addBindValue(passengerIdcard);
 
+
     if (!orderQuery.exec()) {
         m_db.rollback();
         qCritical() << "创建订单失败：" << orderQuery.lastError().text();
         emit orderCreatedFailed("创建订单失败：" + orderQuery.lastError().text());
         return false;
     }
+
 
     // 5. 提交事务（无需调用 lastInsertId()，直接用生成的 orderId）
     if (!m_db.commit()) {
