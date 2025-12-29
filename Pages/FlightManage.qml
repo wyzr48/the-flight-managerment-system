@@ -307,6 +307,7 @@ ColumnLayout{
         Layout.fillHeight: true
         Layout.fillWidth: true
         spacing: 5
+        clip:true
         model: flightList
 
         delegate: FlightManageCard{
@@ -339,4 +340,27 @@ ColumnLayout{
 
     //初始化
     Component.onCompleted: updateData()
+
+    Connections{
+        target:DBManager
+
+        function onOperateResult(success,message)
+        {
+            if(message.includes("航班添加成功！航班号") && success)
+            {
+                updateData()
+                return ;
+            }
+            if((message.includes("状态更新为")||message.includes("价格更新为")||message.includes("剩余座位更新为"))&&success)
+            {
+                updateData()
+                return ;
+            }
+            if(message.includes("航班删除成功！")&&success)
+            {
+                updateData()
+                return ;
+            }
+        }
+    }
 }

@@ -29,6 +29,7 @@ ColumnLayout{
         Layout.fillHeight: true
         Layout.fillWidth: true
         spacing: 5
+        clip:true
         model: userList
 
         delegate: UserCard{
@@ -51,6 +52,18 @@ ColumnLayout{
         for(let i=0;i<users.length;i++)
         {
             userList.append(users[i])
+        }
+    }
+
+    Connections{
+        target:DBManager
+
+        function onOperateResult(success,message)
+        {
+            if(message.includes("用户删除成功")&&success)
+            {
+                updateData()
+            }
         }
     }
 }

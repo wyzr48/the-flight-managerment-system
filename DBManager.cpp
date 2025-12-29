@@ -803,7 +803,8 @@ bool DBManager::addFlight(const QString &flightId,
 
     bool success = query.exec();
     if (success) {
-        emit operateResult(true, "航班 " + flightId + " 添加成功！");
+        locker.unlock();
+        emit operateResult(true, "航班添加成功！航班号: " + flightId);
     } else {
         QString errMsg = "[DB] 插入失败：" + query.lastError().text();
         qCritical() << errMsg;
@@ -841,6 +842,7 @@ bool DBManager::updateFlightPrice(const QString &Flight_id, double newPrice)
     bool success = query.exec();
 
     if (success && query.numRowsAffected() > 0) {
+        locker.unlock();
         emit operateResult(true,
                            "航班 " + Flight_id + " 价格更新为 " + QString::number(newPrice, 'f', 2)
                                + " 元！");
@@ -895,10 +897,15 @@ bool DBManager::updateFlightSeats(const QString &Flight_id, int newRemainSeats)
     bool success = query.exec();
 
     if (success && query.numRowsAffected() > 0) {
+        locker.unlock();
         emit operateResult(true,
                            "航班 " + Flight_id + " 剩余座位更新为 "
                                + QString::number(newRemainSeats) + "！");
-    } else {
+    }
+    else if(success && query.numRowsAffected() == 0){
+        emit operateResult(true,"未修改");
+    }
+    else {
         QString errMsg = "[DB] 更新失败：" + query.lastError().text();
         qCritical() << errMsg;
         emit operateResult(false, errMsg);
@@ -936,6 +943,7 @@ bool DBManager::updateFlightStatus(const QString &Flight_id, int newstatus)
     bool success = query.exec();
 
     if (success && query.numRowsAffected() > 0) {
+        locker.unlock();
         emit operateResult(true,
                            "航班 " + Flight_id + " 状态更新为 " + QString::number(newstatus)
                                + "！ ");
@@ -973,7 +981,8 @@ bool DBManager::deleteFlight(const QString &Flight_id)
     bool success = query.exec();
 
     if (success && query.numRowsAffected() > 0) {
-        emit operateResult(true, "航班 " + Flight_id + " 删除成功！");
+        locker.unlock();
+        emit operateResult(true, "航班删除成功！ 航班号：" + Flight_id + " ");
     } else if (success && query.numRowsAffected() == 0) {
         emit operateResult(false, "删除失败：未找到航班 " + Flight_id + "！");
         success = false;
@@ -1546,7 +1555,7 @@ bool DBManager::deleteOrder(const QString& orderId)
 
     if (success && query.numRowsAffected() > 0) {
         locker.unlock();
-        emit operateResult(true, "订单 " + orderId + " 删除成功！");
+        emit operateResult(true, "订单删除成功！订单号 " + orderId);
     } else if (success && query.numRowsAffected() == 0) {
         emit operateResult(false, "删除失败：未找到订单 " + orderId + "！");
         success = false;
@@ -2161,7 +2170,7 @@ bool DBManager::deleteUser(int userId) {
 
         // 6.1 删除用户收藏的航班
         QSqlQuery deleteFavQuery(m_db);
-        deleteFavQuery.prepare("DELETE FROM user_collect_filght WHERE user_id = :userId");
+        deleteFavQuery.prepare("DELETE FROM user_collect_flights WHERE user_id = :userId");
         deleteFavQuery.bindValue(":userId", userId);
         if (!deleteFavQuery.exec()) {
             qDebug() << "删除用户收藏失败:" << deleteFavQuery.lastError().text();
@@ -2194,7 +2203,7 @@ bool DBManager::deleteUser(int userId) {
 
         // 6.5 删除用户订单（假设订单表有外键约束，ON DELETE CASCADE）
         QSqlQuery deleteOrdersQuery(m_db);
-        deleteOrdersQuery.prepare("DELETE FROM order WHERE user_id = :userId");
+        deleteOrdersQuery.prepare("DELETE FROM `order` WHERE user_id = :userId");
         deleteOrdersQuery.bindValue(":userId", userId);
         if (!deleteOrdersQuery.exec()) {
             qDebug() << "删除用户订单失败:" << deleteOrdersQuery.lastError().text();
@@ -2230,6 +2239,7 @@ bool DBManager::deleteUser(int userId) {
         }
 
         qDebug() << "管理员" << m_currentAdminName << "删除了用户" << username << "(ID:" << userId << ")";
+
         emit operateResult(true, "用户删除成功");
 
         return true;

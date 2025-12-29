@@ -29,6 +29,7 @@ ColumnLayout{
         Layout.fillHeight: true
         Layout.fillWidth: true
         spacing: 5
+        clip:true
         model: orderList
 
         delegate: MyFlightCard{
@@ -55,6 +56,18 @@ ColumnLayout{
         for(let i=0;i<orders.length;i++)
         {
             orderList.append(orders[i])
+        }
+    }
+
+    Connections{
+        target:DBManager
+
+        function onOperateResult(success,message)
+        {
+            if(message.includes("订单删除成功！订单号")&&success)
+            {
+                updateData()
+            }
         }
     }
 
