@@ -30,7 +30,6 @@ ColumnLayout{
         Layout.fillWidth: true
         clip: true
         spacing: 5
-        clip:true
         model: userList
 
         delegate: UserCard{

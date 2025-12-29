@@ -594,6 +594,7 @@ Window {
                 width:parent.width
                 placeholderText: "请输入新密码"
                 height:30
+                echoMode: TextInput.Password
                 background: Rectangle {
                     radius: 6
                     border.width: 1
@@ -608,6 +609,7 @@ Window {
                 width:parent.width
                 placeholderText: "请确认新密码"
                 height:30
+                echoMode: TextInput.Password
                 background: Rectangle {
                     radius: 6
                     border.width: 1
@@ -766,7 +768,7 @@ Window {
                   name:"password_reset"
                   PropertyChanges {
                       target: messageText
-                      text:"密码重制成功"
+                      text:"密码重置成功"
                   }
               }
             ]
@@ -950,7 +952,7 @@ Window {
         errorDialog.open()
         return ;
       }
-      var code=DBManger.forgetPassword(resetEmailInput.text,captchaInput.text,regain_password.text)
+      var code=DBManager.forgetPassword(resetEmailInput.text,captchaInput.text,regain_password.text)
       if(code===1)
       {
         errorText.state="email_invalid"
